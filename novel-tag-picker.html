@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>小说标签抽签器</title>
+<style>
+  :root {
+    --bg: #0e0e12;
+    --bg2: #16161e;
+    --bg3: #1e1e28;
+    --card: #1a1a24;
+    --border: #2e2e3e;
+    --border2: #3e3e52;
+    --text: #e8e8f0;
+    --text2: #9090a8;
+    --text3: #5a5a72;
+    --accent: #c084fc;
+    --accent2: #818cf8;
+    --gold: #fbbf24;
+    --red: #f87171;
+    --green: #34d399;
+    --blue: #60a5fa;
+    --pink: #f472b6;
+    --orange: #fb923c;
+    --teal: #2dd4bf;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, 'PingFang SC', 'Helvetica Neue', sans-serif;
+    min-height: 100vh;
+    padding-bottom: 40px;
+  }
+
+  /* Header */
+  .header {
+    background: linear-gradient(135deg, #1a0a2e 0%, #0e0e12 60%);
+    border-bottom: 1px solid var(--border);
+    padding: 24px 20px 20px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    top: -60px; left: 50%; transform: translateX(-50%);
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(192,132,252,0.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .header-title {
+    font-size: 22px;
+    font-weight: 700;
+    background: linear-gradient(135deg, #c084fc, #818cf8, #60a5fa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: 2px;
+    margin-bottom: 6px;
+  }
+  .header-sub {
+    font-size: 12px;
+    color: var(--text3);
+    letter-spacing: 1px;
+  }
+
+  /* Main */
+  .main { max-width: 520px; margin: 0 auto; padding: 20px 16px; }
+
+  /* Section */
+  .section { margin-bottom: 20px; }
+  .section-label {
+    font-size: 11px;
+    color: var(--text3);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* Pool buttons */
+  .pool-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .pool-btn {
+    padding: 8px 20px;
+    border-radius: 24px;
+    border: 1px solid var(--border2);
+    background: var(--bg2);
+    color: var(--text2);
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+  }
+  .pool-btn:active { transform: scale(0.96); }
+  .pool-btn.on {
+    background: linear-gradient(135deg, #7c3aed, #4f46e5);
+    border-color: transparent;
+    color: #fff;
+    box-shadow: 0 0 16px rgba(124,58,237,0.4);
+  }
+
+  /* Type chips */
+  .type-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .type-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--bg2);
+    color: var(--text2);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+  }
+  .type-btn:active { transform: scale(0.96); }
+  .type-btn.on {
+    border-color: var(--border2);
+    color: var(--text);
+    background: var(--bg3);
+  }
+  .type-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--text3);
+    transition: background 0.2s;
+  }
+  .type-btn.on .type-dot { background: var(--accent); }
+  .type-count {
+    font-size: 10px;
+    color: var(--text3);
+    background: var(--bg);
+    padding: 1px 5px;
+    border-radius: 8px;
+  }
+  .type-btn.on .type-count { color: var(--accent); }
+
+  /* Quantity */
+  .qty-row { display: flex; align-items: center; gap: 12px; }
+  .qty-label { font-size: 13px; color: var(--text2); white-space: nowrap; }
+  .qty-val { font-size: 18px; font-weight: 700; color: var(--accent); min-width: 28px; text-align: center; }
+  input[type=range] {
+    flex: 1;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--border2);
+    outline: none;
+    cursor: pointer;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #c084fc, #818cf8);
+    cursor: pointer;
+    box-shadow: 0 0 8px rgba(192,132,252,0.5);
+  }
+  input[type=range]::-moz-range-thumb {
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #c084fc, #818cf8);
+    cursor: pointer;
+    border: none;
+  }
+
+  /* Pool info */
+  .pool-info {
+    font-size: 11px;
+    color: var(--text3);
+    text-align: right;
+    margin-top: 6px;
+  }
+  .pool-info span { color: var(--accent); font-weight: 500; }
+
+  /* Draw button */
+  .draw-btn {
+    width: 100%;
+    padding: 16px;
+    border-radius: 16px;
+    border: none;
+    background: linear-gradient(135deg, #7c3aed, #4f46e5, #2563eb);
+    color: #fff;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 24px rgba(124,58,237,0.4);
+  }
+  .draw-btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.1), transparent);
+    pointer-events: none;
+  }
+  .draw-btn:active { transform: scale(0.98); box-shadow: 0 2px 12px rgba(124,58,237,0.3); }
+  .draw-btn.spinning { animation: pulse 0.4s ease; }
+  @keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(0.96); }
+    100% { transform: scale(1); }
+  }
+
+  /* Result */
+  .result-box {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    min-height: 80px;
+    transition: all 0.3s;
+  }
+  .result-placeholder { color: var(--text3); font-size: 14px; text-align: center; padding: 10px 0; }
+  .result-combo {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 2;
+    word-break: break-all;
+    margin-bottom: 14px;
+  }
+  .result-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tag-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    border: 1px solid;
+    animation: tagIn 0.3s ease both;
+  }
+  @keyframes tagIn {
+    from { opacity: 0; transform: scale(0.8) translateY(4px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+  }
+
+  /* Copy button */
+  .copy-btn {
+    margin-top: 14px;
+    width: 100%;
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid var(--border2);
+    background: transparent;
+    color: var(--text2);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .copy-btn:active { transform: scale(0.98); background: var(--bg3); }
+  .copy-btn.copied { color: var(--green); border-color: var(--green); }
+
+  /* History */
+  .hist-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .clear-btn {
+    font-size: 12px;
+    color: var(--text3);
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: all 0.2s;
+  }
+  .clear-btn:hover { color: var(--red); background: rgba(248,113,113,0.1); }
+  .hist-list { display: flex; flex-direction: column; gap: 8px; }
+  .hist-item {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 12px;
+    color: var(--text2);
+    line-height: 1.6;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .hist-item:hover { border-color: var(--border2); color: var(--text); }
+  .hist-time { color: var(--text3); white-space: nowrap; font-size: 11px; margin-top: 1px; flex-shrink: 0; }
+  .hist-combo { word-break: break-all; }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    margin-top: 40px;
+    color: var(--text3);
+    font-size: 11px;
+    line-height: 2;
+  }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 40px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    padding: 10px 20px;
+    border-radius: 24px;
+    font-size: 13px;
+    opacity: 0;
+    transition: all 0.3s;
+    pointer-events: none;
+    white-space: nowrap;
+    z-index: 999;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-title">✦ 小说标签抽签器 ✦</div>
+  <div class="header-sub">随机组合 · 灵感无限</div>
+</div>
+
+<div class="main">
+
+  <!-- 频道池 -->
+  <div class="section">
+    <div class="section-label">频道池</div>
+    <div class="pool-row">
+      <button class="pool-btn on" onclick="setPool('all',this)">全部</button>
+      <button class="pool-btn" onclick="setPool('male',this)">男频</button>
+      <button class="pool-btn" onclick="setPool('female',this)">女频</button>
+      <button class="pool-btn" onclick="setPool('common',this)">通用</button>
+    </div>
+  </div>
+
+  <!-- 标签类型 -->
+  <div class="section">
+    <div class="section-label">标签类型</div>
+    <div class="type-row">
+      <button class="type-btn on" data-t="role" onclick="toggleType('role',this)">
+        <span class="type-dot"></span>角色<span class="type-count" id="c-role">0</span>
+      </button>
+      <button class="type-btn on" data-t="plot" onclick="toggleType('plot',this)">
+        <span class="type-dot"></span>情节<span class="type-count" id="c-plot">0</span>
+      </button>
+      <button class="type-btn on" data-t="bg" onclick="toggleType('bg',this)">
+        <span class="type-dot"></span>背景<span class="type-count" id="c-bg">0</span>
+      </button>
+      <button class="type-btn on" data-t="style" onclick="toggleType('style',this)">
+        <span class="type-dot"></span>风格<span class="type-count" id="c-style">0</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- 数量 -->
+  <div class="section">
+    <div class="section-label">抽取数量</div>
+    <div class="qty-row">
+      <span class="qty-label">数量</span>
+      <input type="range" min="2" max="10" value="5" step="1" id="qty-slider" oninput="document.getElementById('qty-val').textContent=this.value">
+      <span class="qty-val" id="qty-val">5</span>
+    </div>
+    <div class="pool-info">当前标签池共 <span id="pool-total">0</span> 个标签</div>
+  </div>
+
+  <!-- 抽签按钮 -->
+  <div class="section">
+    <button class="draw-btn" id="draw-btn" onclick="draw()">✦ 开始抽签 ✦</button>
+  </div>
+
+  <!-- 结果 -->
+  <div class="section">
+    <div class="section-label">抽签结果</div>
+    <div class="result-box" id="result-box">
+      <div class="result-placeholder">点击「开始抽签」生成标签组合</div>
+    </div>
+    <button class="copy-btn" id="copy-btn" onclick="copyResult()" style="display:none">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+      复制结果
+    </button>
+  </div>
+
+  <!-- 历史 -->
+  <div class="section" id="hist-section" style="display:none">
+    <div class="hist-header">
+      <div class="section-label" style="margin-bottom:0">历史记录</div>
+      <button class="clear-btn" onclick="clearHist()">清空</button>
+    </div>
+    <div class="hist-list" id="hist-list"></div>
+  </div>
+
+  <div class="footer">
+    共收录 男频 · 女频 · 通用 三类标签库<br>
+    角色 · 情节 · 背景 · 风格 四大维度<br>
+    © 小说标签抽签器
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const TAGS = {
+  male: {
+    role: ["豪门总裁","霸总","智商在线","扮猪吃虎","霸道","腹黑男主","全能","天才","医生","废柴","王爷","世子","皇帝","明星","反派","忠犬","将军","太子","皇子","学霸","毒舌","外卖员","吃货","仵作","毒医","禁欲男神","高冷大佬","佛系男主","憨憨男主","痞帅男主","纯情初恋","暖男","温柔男主","偏执男主","杀伐果断","都市战神","都市兵王","隐士高人","绝世赘婿","商业大亨","低调大佬","特种兵","护花高手","上门女婿","男强","高冷禁欲","男二"],
+    plot: ["系统签到","无敌系统","金手指","任务发布","奖励升级","修仙","打脸虐渣","玄学","职场","风水","推理","直播","基建","无限流","丧尸","囤物资","读心术","科技","爱国流","偷听心声","万物沟通","逃荒","机甲","电竞","弹幕文","崩人设","氪金","多重人格","奇闻异事","开局无敌","碾压全场","龙傲天","魂穿附身","穿书成反派","副本闯关","轮回世界","生存挑战","网游竞技","游戏异界","虚拟世界","电竞大神","直播带货","游戏攻略","账号养成","鉴宝捡漏","古玩收藏","鉴宝赌石","捉鬼天师","阴阳先生","茅山道术","灵异直播","侦探推理","烧脑反转","密室杀人","连环命案","心理博弈","血脉觉醒","天赋异能","开荒基建","乡村致富","领地建设","创业逆袭","知青下乡","抗战烽火","弥补遗憾","商业崛起","回到过去","星际战争","军事推演","种田起家","凡人修仙","御剑飞行","炼丹炼器","灵兽萌宠","宗门历练","仙魔大战","血脉传承","灵根觉醒","盗墓寻宝","古墓探险","克苏鲁悬疑","犯罪心理","刑侦破案","法医探案"],
+    bg: ["年代","架空历史","末世","异界","奇幻","科幻","未来世界","星际","武侠","远古","神话","西幻","民国","游戏衍生","崩坏星穹铁道","动漫衍生","赛博朋克","废土","东方玄幻","异世大陆","高武世界","洪荒封神","秦汉三国","唐宋盛世","明末清初","历史军事","都市","七零年代","八零年代","九零年代"],
+    style: ["爽文","权谋","宅斗","悬疑","快节奏","恐怖","反套路","正剧","第一人称","烧脑","短篇","热血燃文","都市爽文","无限流风格","历史正剧","种田"]
+  },
+  female: {
+    role: ["女强","萌宝","可盐可甜","团宠","偏执","宠妻","人间清醒","真假千金","嫡女","白月光","二婚","欢喜冤家","大女主","王妃","女配","傲娇","美强惨","戏精","黑月光","恶婆婆","双女主","逗比","清冷女主","飒爽女主","万人迷","毒舌女主","腹黑女主","小白花","咸鱼女主","豪门千金","侯门闺秀","将门贵女","神医嫡女","绝世医妃","冷宫废后","女帝","女扮男装","炮灰女配","病娇男主","偏执深情","霸道总裁","隐婚娇妻","豪门恩怨","平民女主","精英高管","律师医生","军人","年下男友"],
+    plot: ["快穿","穿越","1V1","HE","追妻火葬场","先婚后爱","重生","脑洞","暗恋","男二上位","破镜重圆","穿书","闪婚","青梅竹马","一见钟情","契约婚姻","婚恋","美食","修罗场","双向奔赴","隐婚","姐弟恋","死对头","替嫁","带球跑","御兽","相亲","错嫁","双向救赎","无CP","天作之合","通古今","父子火葬场","宠夫","恋综","古穿今","失忆","逃婚","爆红","BE","倒追","双重生","随身空间","养娃","替身文学","先虐后甜","先甜后虐","快穿攻略","位面穿梭","任务世界","女配逆袭","渣男改造","嫡女归来","改写命运","前世今生","穿书女配","穿书女主","反派自救","剧情反转","搞钱搞事业","独立女性","无恋爱线","三生三世","师徒之恋","仙侣情缘","仙魔殊途","渡劫情深","萌宝天降","暗恋成真","年下恋","大叔恋","家族联姻","温柔救赎","救赎文","炮灰逆袭","女配翻身","公主驸马","和亲情缘","卧底权谋","宫闱秘事","妃嫔争宠","嫡庶之争","后位逆袭","帝王独宠","权臣娇宠","虐恋情深","邻家之恋","竹马天降","日久生情","爱豆追星","网红日常","婚后生活","契约恋人","二婚甜宠","婚恋再婚","古代经商","古风基建"],
+    bg: ["现代言情","古代言情","古代","兽世","幻想言情","校园","影视衍生","衍生言情","乡村","宫廷","江湖","兽人世界","仙界","魔界","星际言情","末世言情"],
+    style: ["甜宠","轻松","虐恋","治愈","现实题材","宫斗","青春","清穿","甜中带虐","虐恋悲情","暗黑致郁","甜蜜无虐","高糖无刀","古风雅致","宅斗权谋","日常治愈","种田"]
+  },
+  common: {
+    role: ["强强","双洁","萌宠","病娇","1v1","百合GL","纯爱BL","NP","骨科","年上年下","兄妹恋","双男主","双强","腹黑","偏执"],
+    plot: ["娱乐圈","综艺","影视","相爱相杀","影视原著","独宠","神兽","炼丹","炼器","医术","囤货","隐藏大佬","极品亲戚","救赎","虐渣","打脸","逆袭","复仇","异能","空间","系统","马甲","规则怪谈","脑洞奇葩","反转剧情","另类设定","万界穿梭","时空轮回","剧本扮演","穿书自救","无限副本","奇幻冒险","基因进化","机械飞升","外星文明","末世基建","末世空间","丧尸围城","末日求生","异能觉醒","萌宠互动"],
+    bg: ["现代","末世","星际","架空","平行时空","废土","丧尸世界","奇幻异界","未来都市"],
+    style: ["搞笑","日常","励志","短故事","沙雕","无狗血","无后妈","HE圆满","BE悲剧","开放式结局","轻小说风格","极简日常","现实向","热血","治愈系","高糖","轻松沙雕","搞笑解压","写实现实"]
+  }
+};
+
+const COLORS = [
+  { bg: 'rgba(192,132,252,0.15)', border: 'rgba(192,132,252,0.5)', text: '#c084fc' },
+  { bg: 'rgba(248,113,113,0.15)', border: 'rgba(248,113,113,0.5)', text: '#f87171' },
+  { bg: 'rgba(52,211,153,0.15)', border: 'rgba(52,211,153,0.5)', text: '#34d399' },
+  { bg: 'rgba(96,165,250,0.15)', border: 'rgba(96,165,250,0.5)', text: '#60a5fa' },
+  { bg: 'rgba(251,191,36,0.15)', border: 'rgba(251,191,36,0.5)', text: '#fbbf24' },
+  { bg: 'rgba(244,114,182,0.15)', border: 'rgba(244,114,182,0.5)', text: '#f472b6' },
+  { bg: 'rgba(251,146,60,0.15)', border: 'rgba(251,146,60,0.5)', text: '#fb923c' },
+  { bg: 'rgba(45,212,191,0.15)', border: 'rgba(45,212,191,0.5)', text: '#2dd4bf' },
+  { bg: 'rgba(129,140,248,0.15)', border: 'rgba(129,140,248,0.5)', text: '#818cf8' },
+  { bg: 'rgba(167,243,208,0.15)', border: 'rgba(167,243,208,0.5)', text: '#6ee7b7' },
+];
+
+let currentPool = 'all';
+let activeTypes = new Set(['role', 'plot', 'bg', 'style']);
+let history = [];
+let lastResult = '';
+
+function buildPool() {
+  const pools = currentPool === 'all' ? ['male','female','common'] :
+                currentPool === 'common' ? ['common'] : [currentPool, 'common'];
+  let arr = [];
+  activeTypes.forEach(t => {
+    pools.forEach(p => { if (TAGS[p] && TAGS[p][t]) arr.push(...TAGS[p][t]); });
+  });
+  return [...new Set(arr)];
+}
+
+function updateCounts() {
+  ['role','plot','bg','style'].forEach(t => {
+    const pools = currentPool === 'all' ? ['male','female','common'] :
+                  currentPool === 'common' ? ['common'] : [currentPool, 'common'];
+    let arr = [];
+    pools.forEach(p => { if (TAGS[p] && TAGS[p][t]) arr.push(...TAGS[p][t]); });
+    const el = document.getElementById('c-' + t);
+    if (el) el.textContent = [...new Set(arr)].length;
+  });
+  document.getElementById('pool-total').textContent = buildPool().length;
+}
+
+function setPool(pool, el) {
+  currentPool = pool;
+  document.querySelectorAll('.pool-btn').forEach(b => b.classList.remove('on'));
+  el.classList.add('on');
+  updateCounts();
+}
+
+function toggleType(type, el) {
+  if (activeTypes.has(type)) {
+    if (activeTypes.size === 1) { showToast('至少保留一个类型'); return; }
+    activeTypes.delete(type);
+    el.classList.remove('on');
+  } else {
+    activeTypes.add(type);
+    el.classList.add('on');
+  }
+  updateCounts();
+}
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function draw() {
+  const qty = parseInt(document.getElementById('qty-slider').value);
+  const pool = buildPool();
+  if (pool.length < qty) {
+    showToast('标签池不足，请增加类型或减少数量');
+    return;
+  }
+
+  const btn = document.getElementById('draw-btn');
+  btn.classList.add('spinning');
+  setTimeout(() => btn.classList.remove('spinning'), 400);
+
+  const picked = shuffle(pool).slice(0, qty);
+  const combo = picked.map(t => `(${t})`).join('+');
+  lastResult = combo;
+
+  const pillsHtml = picked.map((t, i) => {
+    const c = COLORS[i % COLORS.length];
+    return `<span class="tag-pill" style="background:${c.bg};border-color:${c.border};color:${c.text};animation-delay:${i*0.05}s">${t}</span>`;
+  }).join('');
+
+  document.getElementById('result-box').innerHTML = `
+    <div class="result-combo">${combo}</div>
+    <div class="result-tags">${pillsHtml}</div>
+  `;
+
+  const copyBtn = document.getElementById('copy-btn');
+  copyBtn.style.display = 'flex';
+  copyBtn.classList.remove('copied');
+  copyBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>复制结果`;
+
+  history.unshift({ combo, time: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }) });
+  if (history.length > 20) history.pop();
+  renderHistory();
+}
+
+function copyResult() {
+  if (!lastResult) return;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(lastResult).then(() => {
+      const btn = document.getElementById('copy-btn');
+      btn.classList.add('copied');
+      btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>已复制`;
+      showToast('已复制到剪贴板 ✓');
+    });
+  } else {
+    const ta = document.createElement('textarea');
+    ta.value = lastResult;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    showToast('已复制到剪贴板 ✓');
+  }
+}
+
+function renderHistory() {
+  const sec = document.getElementById('hist-section');
+  const list = document.getElementById('hist-list');
+  if (!history.length) { sec.style.display = 'none'; return; }
+  sec.style.display = 'block';
+  list.innerHTML = history.map(h => `
+    <div class="hist-item" onclick="useHist('${h.combo.replace(/'/g,"\\'")}')">
+      <span class="hist-time">${h.time}</span>
+      <span class="hist-combo">${h.combo}</span>
+    </div>
+  `).join('');
+}
+
+function useHist(combo) {
+  navigator.clipboard && navigator.clipboard.writeText(combo);
+  showToast('已复制 ✓');
+}
+
+function clearHist() {
+  history = [];
+  renderHistory();
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+updateCounts();
+</script>
+</body>
+</html>
